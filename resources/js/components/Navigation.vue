@@ -22,6 +22,7 @@
                 </a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                 <router-link class="dropdown-item" :to="{ name : 'notes.create'}">New Note</router-link>
+                <router-link class="dropdown-item" :to="{ name : 'notes.table'}">Table of Note</router-link>
                 </div>
             </li>
             </ul>

@@ -9,7 +9,7 @@
                 <div class="card">
                     <div class="card-header">New Note</div>
                     <div class="card-body">
-                        <form action="#" method="post" @submit.prevent="store">
+                        <form action="#" method="post" @submit.prevent="update">
                             <div class="form-group">
                                 <label for="title">Title</label>
                                 <input type="text" v-model="form.title" id="title" class="form-control">
@@ -17,10 +17,13 @@
                             </div>
                             <div class="form-group">
                                 <label for="subject">Subject</label>
-                                <select v-model="form.subject" id="subject" class="form-control">
-                                    <option v-for="subject in subjects" :key="subject.id" :value="subject.id">
-                                        {{ subject.title }}
-                                    </option>
+                                <select @change="selectedSubject" id="subject" class="form-control">
+                                    <option :value="form.subject_id" v-text="form.subject"></option>
+                                    <template v-for="subject in subjects">
+                                        <option v-if="form.subject_id !== subject.id" :key="subject.id" :value="subject.id">
+                                            {{ subject.title }}
+                                        </option>
+                                    </template>
                                 </select>
                                 <div v-if="TheError.subject" class="mt2 text-danger">{{ TheError.subject[0] }}</div>
                             </div>
@@ -29,7 +32,7 @@
                                 <textarea v-model="form.description" id="description" rows="5" class="form-control"></textarea>
                                 <div v-if="TheError.description" class="mt2 text-danger">{{ TheError.description[0] }}</div>
                             </div>
-                            <button type="submit" class="btn btn-primary">Save</button>
+                            <button type="submit" class="btn btn-primary">Update</button>
                         </form>
                     </div>
                 </div>
@@ -42,19 +45,16 @@
 export default {
     data(){
         return {
-            form : {
-                title : '',
-                description : '',
-                subject : '',
-            },
-            // successMessage : '',
+            form : [],
             subjects : [],
-            TheError : []
+            TheError : [],
+            selected : '',
         };
     },
 
     mounted() {
         this.getSubjects();
+        this.getNotes();
     },
 
     methods : {
@@ -65,28 +65,26 @@ export default {
             }
         },
 
-        async store(){
-            try {
-                let response = await axios.post('/api/notes/create-new-note', this.form)
-                if (response.status === 200){
-                    this.form.title = ''
-                    this.form.description = ''
-                    this.form.subject = ''
-                    this.TheError = []
-                    // this.successMessage = response.data.message
-                    this.$toasted.show(response.data.message, {
-                        type : 'success',
-                        duration : 3000,
-                    })
-                }
-            }catch(e){
-                this.$toasted.show("Something went wrong.", {
-                    type : 'error',
-                    duration : 3000,
-                })
-            }
-            
+        async getNotes() {
+            let response = await axios.get(`/api/notes/${this.$route.params.noteSlug}`);
+            this.form = response.data.data;
         },
+
+        selectedSubject (e){
+            this.selected = e.target.value;
+        },
+
+        async update(){
+            this.form['subject'] = this.selected || this.form.subject_id
+            let response = await axios.patch(`/api/notes/${this.$route.params.noteSlug}/edit`, this.form);
+
+            this.$toasted.show(response.data.message, {
+                type : 'success',
+                duration : 3000,
+            })
+            
+            this.$router.push('/notes/table')
+        }
     }
 };
 </script>
