@@ -1,6 +1,9 @@
 <template>
     <div class="container">
         <h3>Table of Notes</h3>
+        <form class="mb-3" action="" method="get" @submit.prevent="print">
+            <button type="submit" class="btn btn-info">print</button>
+        </form>
         <table class="table">
             <thead>
                 <tr>
@@ -41,11 +44,21 @@ export default {
     },
 
     mounted() {
-        axios.get('/api/notes').then((response) => {
-            this.notes = response.data.data;
-        }).catch((err) => {
-            throw err;
-        });
+        this.getNotes();
+    },
+
+    methods: {
+        async getNotes(){
+            axios.get('/api/notes').then((response) => {
+                this.notes = response.data.data;
+            }).catch((err) => {
+                throw err;
+            });
+        },
+
+        print(){
+            window.print();
+        }
     }
 }
 </script>
